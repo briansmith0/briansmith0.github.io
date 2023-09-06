@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<body>
+Unofficial RHEL lifecycle graphs (Beta).  Warning: information may not be accurate -- see <a href=https://access.redhat.com/support/policy/updates/errata>https://access.redhat.com/support/policy/updates/errata</a> for official information
+<br/>
+<br/>
+Click headings in graph to enable/disable portions of graph
+
+<div>
+  <canvas id="RHELChart"></canvas>
+</div>
+	
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+<script>
+  const canvasChart = document.getElementById('RHELChart');
+  var RHEL7 = moment("2014-06-09");  
+  var RHEL8 = moment("2019-05-07");
+  var RHEL9 = moment("2022-05-07");
+  var RHEL10 = moment("2025-05-07");
+
+  var RHEL7index = 0;
+  var RHEL8index = 1;
+  var RHEL9index = 2;
+  var RHEL10index = 3;
+  var EUSindex = 4;
+  var EEUSindex = 5;
+  var SAPindex = 6;
+  var ELSindex = 7;
+
+  function generateLabels(){
+    var labels = [];
+      version = '9';
+      for (let x = 10; x >= 0; x--){
+        labels.push(version + '.' + x);
+      } 
+    return labels;
+  }
+
+  function generateUpdatedLabels(chart){
+    var labels = [];
+    if (chart.isDatasetVisible(RHEL10index)){
+      version = '10';
+      for (let x = 10; x >= 0; x--){
+        labels.push(version + '.' + x);
+      } 
+    }
+    if (chart.isDatasetVisible(RHEL9index)){
+      version = '9';
+      for (let x = 10; x >= 0; x--){
+        labels.push(version + '.' + x);
+      } 
+    }
+    if (chart.isDatasetVisible(RHEL8index)){
+      version = '8';
+      for (let x = 10; x >= 0; x--){
+        labels.push(version + '.' + x);
+      } 
+    }
+    if (chart.isDatasetVisible(RHEL7index)){
+      version = '7';
+      for (let x = 9; x >= 0; x--){
+        labels.push(version + '.' + x);
+      } 
+    }
+    return labels;
+  }
+
+  function generateUpdatedDataELS(chart) {
+    var lifecycle = [];
+    if (chart != null ) {
+      if (chart.isDatasetVisible(ELSindex) ){
+        if (chart.isDatasetVisible(RHEL10index)){
+          for (let x = 10; x >= 0; x--){
+            if (x == 10){
+                var start = RHEL10.clone().add((6*x)+60, 'month');
+                var end = RHEL10.clone().add((6*(x+1)+60+30), 'month');
+                lifecycle.push([start,end]);
+	    }else{
+              lifecycle.push([]);
+	    }
+	  }
+	}
+        if (chart.isDatasetVisible(RHEL9index)){
+          for (let x = 10; x >= 0; x--){
+            if (x == 10){
+                var start = RHEL9.clone().add((6*x)+60, 'month');
+                var end = RHEL9.clone().add((6*(x+1)+60+30), 'month');
+                lifecycle.push([start,end]);
+	    }else{
+              lifecycle.push([]);
+	    }
+	  }
+	}
+        if (chart.isDatasetVisible(RHEL8index)){
+          for (let x = 10; x >= 0; x--){
+            if (x == 10){
+                var start = RHEL8.clone().add((6*x)+60, 'month');
+                var end = RHEL8.clone().add((6*(x+1)+60+30), 'month');
+                lifecycle.push([start,end]);
+	    }else{
+              lifecycle.push([]);
+	    }
+	  }
+	}
+        if (chart.isDatasetVisible(RHEL7index)){
+          for (let x = 10; x >= 0; x--){
+            if (x == 10){
+                var start = RHEL7.clone().add(120, 'month');
+                var end = RHEL7.clone().add(120+48, 'month');
+                lifecycle.push([start,end]);
+	    }else{
+              lifecycle.push([]);
+	    }
+	  }
+	}
+      }
+    }
+    return lifecycle;
+  }
+	 
+  function generateUpdatedScales(chart) {
+    var start;
+    if (chart != null ) {
+      if (chart.isDatasetVisible(RHEL7index)){
+        start = RHEL7.clone().subtract((6), 'month');
+      }else if (chart.isDatasetVisible(RHEL8index)){
+        start = RHEL8.clone().subtract((6), 'month');
+      }else if (chart.isDatasetVisible(RHEL9index)){
+        start = RHEL9.clone().subtract((6), 'month');
+      }else if (chart.isDatasetVisible(RHEL10index)){
+        start = RHEL10.clone().subtract((6), 'month');
+      }
+    }
+    return start;
+  }
+
+
+  function generateUpdatedDataEUS(version,chart) {
+    var lifecycle = [];
+    if (chart != null ) {
+      if (chart.isDatasetVisible(EUSindex) || chart.isDatasetVisible(EEUSindex) || chart.isDatasetVisible(SAPindex) ){
+        if (chart.isDatasetVisible(RHEL10index)){
+          for (let x = 10; x >= 0; x--){
+            if (x % 2 === 0 && x != 10){
+	      if ( (chart.isDatasetVisible(EEUSindex) && version == "EEUS" ) || (chart.isDatasetVisible(SAPindex) && version == "SAP" )){
+                var start = RHEL10.clone().add((6*x)+6+18, 'month');
+                var end = RHEL10.clone().add((6*(x+1)+18+24), 'month');
+	      }else{
+                var start = RHEL10.clone().add((6*x)+6, 'month');
+                var end = RHEL10.clone().add((6*(x+1)+18), 'month');
+	      }
+              lifecycle.push([start,end]);
+	    } else{
+              lifecycle.push([]);
+	    }
+          }
+        }
+
+        start = null;
+	end = null;
+        if (chart.isDatasetVisible(RHEL9index)){
+          for (let x = 10; x >= 0; x--){
+            if (x % 2 === 0 && x != 10){
+	      if ( (chart.isDatasetVisible(EEUSindex) && version == "EEUS" ) || (chart.isDatasetVisible(SAPindex) && version == "SAP" )){
+                var start = RHEL9.clone().add((6*x)+6+18, 'month');
+                var end = RHEL9.clone().add((6*(x+1)+18+24), 'month');
+	      } else {
+                var start = RHEL9.clone().add((6*x)+6, 'month');
+                var end = RHEL9.clone().add((6*(x+1)+18), 'month');
+	      }
+              lifecycle.push([start,end]);
+	    }else{
+              lifecycle.push([]);
+	    }
+          }
+        }
+        start = null;
+	end = null;
+        if (chart.isDatasetVisible(RHEL8index)){
+          for (let x = 10; x >= 0; x--){
+            if ((x % 2 === 0 && x != 10 ) || x == 1){
+	      if ((chart.isDatasetVisible(SAPindex) ) && ( version == "SAP" )){
+		if (x == 0 && version == "SAP" ){
+                  var start = RHEL8.clone().add((6*x)+6, 'month');
+                  var end = RHEL8.clone().add((6*(x+1)+14), 'month');
+                  lifecycle.push([start,end]);
+		}else if ( x != 0){
+                  var start = RHEL8.clone().add((6*x)+6+18, 'month');
+                  var end = RHEL8.clone().add((6*(x+1)+18+24), 'month');
+                  lifecycle.push([start,end]);
+		}
+	      } else if ( (chart.isDatasetVisible(EUSindex) ) && ( version == "EUS" ) && (x != 0) ){
+                var start = RHEL8.clone().add((6*x)+6, 'month');
+                var end = RHEL8.clone().add((6*(x+1)+18), 'month');
+                lifecycle.push([start,end]);
+	      } else {
+                lifecycle.push([]);
+	      }
+	    }else {
+              lifecycle.push([]);
+	    }
+          }
+        }
+        start = null;
+	end = null;
+        if (chart.isDatasetVisible(RHEL7index)){
+          if ((chart.isDatasetVisible(SAPindex) ) && ( version == "SAP" )){
+            for (let x = 9; x >= 0; x--){
+	      if (x == 7 && version == "SAP" ){
+		lifecycle.push([ '2021-08-07', '2023-08-30']);
+	      }else{
+                lifecycle.push([]);
+	      }
+	    }
+	  } else if ( (chart.isDatasetVisible(EUSindex) ) && ( version == "EUS" ) ){
+              lifecycle.push([]); //7.9
+              lifecycle.push([ '2020-09-28', '2022-03-31' ]); //7.8
+              lifecycle.push([ '2020-03-30', '2021-08-06' ]); //7.7
+              lifecycle.push([ '2019-08-05', '2020-10-30' ]); //7.6
+              lifecycle.push([ '2018-10-29', '2020-04-10' ]); //7.5
+              lifecycle.push([ '2018-04-09', '2019-07-31' ]); //7.4
+              lifecycle.push([ '2017-07-30', '2018-11-03' ]); //7.3
+              lifecycle.push([ '2016-11-02', '2017-11-19' ]); //7.2
+              lifecycle.push([ '2015-11-18', '2017-03-05']); //7.1
+              lifecycle.push([]); //7.0
+	  } else {
+            lifecycle.push([]);
+	  }
+	}
+      }
+    }
+    return lifecycle;
+  }
+
+  function generateUpdatedData(RHEL,version,chart) {
+    var lifecycle = [];
+    var spaces = 0;
+
+    if (chart != null) {
+      if (version == 9){
+        if (chart.isDatasetVisible(RHEL10index)) { spaces += 11; }
+      }
+      if (version == 8){
+        if (chart.isDatasetVisible(RHEL10index)) { spaces += 11; }
+        if (chart.isDatasetVisible(RHEL9index)) { spaces += 11; }
+      }
+      if (version == 7){
+        if (chart.isDatasetVisible(RHEL10index)) { spaces += 11; }
+        if (chart.isDatasetVisible(RHEL9index)) { spaces += 11; }
+        if (chart.isDatasetVisible(RHEL8index)) { spaces += 11; }
+      }
+      for (let y = 1; y <= spaces; y++) {
+        lifecycle.push([]);
+      }
+    }
+    
+    if (version ==  8 || version == 9 || version == 10) {
+      for (let x = 10; x >= 0; x--){
+        var start = RHEL.clone().add(6*x, 'month');
+        if (x == 10){
+          var end = RHEL.clone().add((6*(x+1)+54), 'month');
+        }else {
+          var end = RHEL.clone().add(6*(x+1), 'month');
+        }
+        lifecycle.push([start,end]);
+      }
+    }
+    if (version == 7 ) {
+      lifecycle.push(['2020-09-29', '2024-06-30']); //7.9
+      lifecycle.push(['2020-03-31', '2020-09-28']); //7.8
+      lifecycle.push(['2019-08-06', '2020-03-30']); //7.7
+      lifecycle.push(['2018-10-30', '2019-08-05']); //7.6
+      lifecycle.push(['2018-04-10', '2018-10-29']); //7.5
+      lifecycle.push(['2017-07-31', '2018-04-09']); //7.4
+      lifecycle.push(['2016-11-03', '2017-07-30']); //7.3
+      lifecycle.push(['2015-11-19', '2016-11-02']); //7.2
+      lifecycle.push(['2015-03-05', '2015-11-18']); //7.1
+      lifecycle.push(['2014-06-09', '2015-03-04']); //7.0
+    }
+    return lifecycle; 
+  }
+
+  let RHELChart = new Chart(canvasChart, {
+    type: 'bar',
+    data: {
+      labels: generateLabels(),
+      datasets: [{
+        label: 'RHEL 7',
+        data: generateUpdatedData(RHEL7,'7'),
+	backgroundColor: '#0061c2',
+	hidden: true
+      },
+      {
+        label: 'RHEL 8',
+        data: generateUpdatedData(RHEL8,'8'),
+	backgroundColor: '#0061c2',
+	hidden: true
+      },
+      {
+        label: 'RHEL 9',
+        data: generateUpdatedData(RHEL9,'9'),
+	backgroundColor: '#0061c2',
+	hidden: false
+      },
+      {
+        label: 'RHEL 10 (projected)',
+        data: generateUpdatedData(RHEL10,'10'),
+	backgroundColor: '#0061c2',
+        hidden: true
+      }, {
+        label: 'Extended Update Support (EUS)',
+        data: generateUpdatedDataEUS('EUS'),  
+	backgroundColor: '#c2d5e9',
+	hidden: true
+      },
+      {
+        label: 'Enhanced Extended Update Support',
+        data: generateUpdatedDataEUS('EEUS'),  
+	backgroundColor: '#deeac2',
+	hidden: true
+      },
+      {
+        label: 'Update Services for SAP Solutions',
+        data: generateUpdatedDataEUS('SAP'),  
+	backgroundColor: '#deeac2',
+	hidden: true
+      },
+      {
+        label: 'Extended Life cycle support (ELS)',
+        data: generateUpdatedDataELS(),  
+	hidden: true,
+	backgroundColor: '#8b8b8b',
+      },
+      ]
+    },
+    options: {
+      plugins: {
+        annotation: {
+          annotations: {
+            line1: {
+              type: 'line',
+	      borderDash: [4,10],
+              xMin: moment(),
+              xMax: moment(),
+              borderColor: 'rgb(0, 0, 0)',
+              borderWidth: 2,
+            },
+            line2: {
+              type: 'line',
+              yMin: 10.5,
+              yMax: 10.5,
+              borderColor: 'rgb(0, 0, 0)',
+              borderWidth: 1,
+            },
+            line3: {
+              type: 'line',
+              yMin: 21.5,
+              yMax: 21.5,
+              borderColor: 'rgb(0, 0, 0)',
+              borderWidth: 1,
+            },
+            line4: {
+              type: 'line',
+              yMin: 32.5,
+              yMax: 32.5,
+              borderColor: 'rgb(0, 0, 0)',
+              borderWidth: 1,
+            },
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: callback => {
+              const dates = callback.dataset.data[callback.dataIndex];
+	      date1 = moment(dates[0]);
+	      date2 = moment(dates[1]);
+              return date1.format('MM/YYYY') + ' - ' + date2.format('MM/YYYY'); 
+            }
+          }
+        },
+        title: {
+          display: true,
+          text: 'Lifecycle info',
+	},
+	legend: {
+	  onClick: function(e, legendItem){
+	    var datasetIndex = legendItem.datasetIndex;
+            var currentChart = this.chart;
+	    currentChart.setDatasetVisibility(datasetIndex, !currentChart.isDatasetVisible(datasetIndex));
+	    currentChart.data.datasets[RHEL7index].data = generateUpdatedData(RHEL7,'7',currentChart);
+	    currentChart.data.datasets[RHEL8index].data = generateUpdatedData(RHEL8,'8',currentChart);
+	    currentChart.data.datasets[RHEL9index].data = generateUpdatedData(RHEL9,'9',currentChart);
+	    currentChart.data.datasets[RHEL10index].data = generateUpdatedData(RHEL10,'10',currentChart);
+	    currentChart.data.datasets[EUSindex].data = generateUpdatedDataEUS('EUS',currentChart);
+	    currentChart.data.datasets[EEUSindex].data = generateUpdatedDataEUS('EEUS',currentChart);
+	    currentChart.data.datasets[SAPindex].data = generateUpdatedDataEUS('SAP',currentChart);
+	    currentChart.data.datasets[ELSindex].data = generateUpdatedDataELS(currentChart);
+	    currentChart.config.data.labels = generateUpdatedLabels(currentChart);
+	    currentChart.options.scales.x.min = generateUpdatedScales(currentChart);
+	    if (datasetIndex == EEUSindex){
+		currentChart.setDatasetVisibility(SAPindex, false);
+	    }
+	    if (datasetIndex == SAPindex){
+		currentChart.setDatasetVisibility(EEUSindex, false);
+	    }
+	    currentChart.update();
+	  }
+        },
+      },
+      indexAxis: 'y',
+      responsive: true,
+      scales: {
+        x: {
+          min: ("2019-01-01"), 
+          type: 'time',
+	  time: {
+	    unit: 'year',
+	  },
+        },
+	y: {
+	  stacked: true,
+	  ticks: {
+            color: "#0061c2",
+	    font: {
+	      size: 14,
+	    }
+	  },
+	}
+      },
+    }
+  });
+</script>
+</body>
+</html>
